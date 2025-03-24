@@ -1,1 +1,1 @@
-# doctrine-entity-checker-bundle
+For share entity checker
