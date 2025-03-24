@@ -10,9 +10,11 @@ use Symfony\Component\DependencyInjection\Attribute\AutoconfigureTag;
  * 为了简化我们的维护工作，我们会定义一些Trait或者新的注释来实现额外的自动化功能，如自动分配雪花ID，自动设置创建时间
  * 这种服务写得好了，就不好维护，特地定义一个Interface
  */
-#[AutoconfigureTag('dbal.entity.checker')]
+#[AutoconfigureTag(self::SERVICE_TAG)]
 interface EntityCheckerInterface
 {
+    const SERVICE_TAG = 'doctrine.entity_checker.checker';
+
     /**
      * 更新实体前执行处理
      */

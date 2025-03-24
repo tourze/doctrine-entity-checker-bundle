@@ -14,7 +14,7 @@ use Tourze\DoctrineEntityCheckerBundle\Checker\EntityCheckerInterface;
 class EntityChecker
 {
     public function __construct(
-        #[TaggedIterator('dbal.entity.checker')] private readonly iterable $checkers,
+        #[TaggedIterator(EntityCheckerInterface::SERVICE_TAG)] private readonly iterable $checkers,
         private readonly EntityManagerInterface $entityManager,
         private readonly ContainerInterface $container,
         private readonly PropertyAccessor $propertyAccessor,
