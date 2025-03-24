@@ -7,15 +7,18 @@ use Doctrine\ORM\Id\AbstractIdGenerator;
 use Doctrine\ORM\Mapping as ORM;
 use Doctrine\Persistence\ObjectManager;
 use Psr\Container\ContainerInterface;
+use Symfony\Component\DependencyInjection\Attribute\Autoconfigure;
+use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\DependencyInjection\Attribute\TaggedIterator;
 use Symfony\Component\PropertyAccess\PropertyAccessor;
 use Tourze\DoctrineEntityCheckerBundle\Checker\EntityCheckerInterface;
 
+#[Autoconfigure(lazy: true)]
 class EntityChecker
 {
     public function __construct(
         #[TaggedIterator(EntityCheckerInterface::SERVICE_TAG)] private readonly iterable $checkers,
-        private readonly EntityManagerInterface $entityManager,
+        #[Autowire(service: EntityManagerInterface::class, lazy: true)] private readonly EntityManagerInterface $entityManager,
         private readonly ContainerInterface $container,
         private readonly PropertyAccessor $propertyAccessor,
     ) {
