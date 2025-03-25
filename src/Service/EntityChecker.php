@@ -35,7 +35,7 @@ class EntityChecker
         }
 
         // 主键没办法通过上面的方式处理
-        $reflection = $this->entityManager->getClassMetadata($entity)->getReflectionClass();
+        $reflection = $this->entityManager->getClassMetadata($entity::class)->getReflectionClass();
         $property = $reflection->getProperty('id');
         $customIdGenerator = $property->getAttributes(ORM\CustomIdGenerator::class);
         if (!empty($customIdGenerator)) {
