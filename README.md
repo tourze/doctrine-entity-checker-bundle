@@ -1,1 +1,0 @@
-For share entity checker
