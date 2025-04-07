@@ -5,10 +5,12 @@ declare(strict_types=1);
 namespace Tourze\DoctrineEntityCheckerBundle\Service;
 
 use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Component\DependencyInjection\Attribute\Autoconfigure;
 
 /**
  * 实体主键值获取服务
  */
+#[Autoconfigure(lazy: true)]
 class EntityPrimaryKeyService
 {
     public function __construct(
