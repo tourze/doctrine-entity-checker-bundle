@@ -10,7 +10,6 @@ use Psr\Container\ContainerInterface;
 use Symfony\Component\DependencyInjection\Attribute\Autoconfigure;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\DependencyInjection\Attribute\TaggedIterator;
-use Symfony\Component\PropertyAccess\PropertyAccessor;
 use Tourze\DoctrineEntityCheckerBundle\Checker\EntityCheckerInterface;
 
 #[Autoconfigure(lazy: true)]
@@ -20,7 +19,6 @@ class EntityChecker
         #[TaggedIterator(EntityCheckerInterface::SERVICE_TAG)] private readonly iterable $checkers,
         #[Autowire(service: EntityManagerInterface::class, lazy: true)] private readonly EntityManagerInterface $entityManager,
         private readonly ContainerInterface $container,
-        private readonly PropertyAccessor $propertyAccessor,
     ) {
     }
 
@@ -41,9 +39,22 @@ class EntityChecker
         if (!empty($customIdGenerator)) {
             $customIdGenerator = $customIdGenerator[0]->newInstance();
             /** @var ORM\CustomIdGenerator $customIdGenerator */
-            $generator = $this->container->get($customIdGenerator->class);
-            /* @var AbstractIdGenerator $generator */
-            $this->propertyAccessor->setValue($entity, 'id', $generator->generateId($objectManager, $entity));
+            $generator = $this->getIdGenerator($customIdGenerator->class);
+
+            // 生成ID并分配给实体
+            $generatedId = $generator->generateId($objectManager, $entity);
+            $this->entityManager->getUnitOfWork()->assignPostInsertId($entity, $generatedId);
         }
+    }
+
+    /**
+     * 从容器获取ID生成器
+     */
+    protected function getIdGenerator(string $generatorClass): AbstractIdGenerator
+    {
+        $generator = $this->container->get($generatorClass);
+        assert($generator instanceof AbstractIdGenerator);
+
+        return $generator;
     }
 }
