@@ -18,7 +18,7 @@ class EntityChecker
     public function __construct(
         #[TaggedIterator(EntityCheckerInterface::SERVICE_TAG)] private readonly iterable $checkers,
         #[Autowire(service: EntityManagerInterface::class, lazy: true)] private readonly EntityManagerInterface $entityManager,
-        private readonly ContainerInterface $container,
+        #[Autowire(service: 'service_container')] private readonly ContainerInterface $container,
     ) {
     }
 
@@ -31,6 +31,7 @@ class EntityChecker
             /* @var EntityCheckerInterface $checker */
             $checker->prePersistEntity($objectManager, $entity);
         }
+        assert($objectManager instanceof EntityManagerInterface);
 
         // 主键没办法通过上面的方式处理
         $reflection = $this->entityManager->getClassMetadata($entity::class)->getReflectionClass();
