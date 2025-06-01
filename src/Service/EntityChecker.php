@@ -35,16 +35,22 @@ class EntityChecker
 
         // 主键没办法通过上面的方式处理
         $reflection = $this->entityManager->getClassMetadata($entity::class)->getReflectionClass();
-        $property = $reflection->getProperty('id');
-        $customIdGenerator = $property->getAttributes(ORM\CustomIdGenerator::class);
-        if (!empty($customIdGenerator)) {
-            $customIdGenerator = $customIdGenerator[0]->newInstance();
-            /** @var ORM\CustomIdGenerator $customIdGenerator */
-            $generator = $this->getIdGenerator($customIdGenerator->class);
+        
+        try {
+            $property = $reflection->getProperty('id');
+            $customIdGenerator = $property->getAttributes(ORM\CustomIdGenerator::class);
+            if (!empty($customIdGenerator)) {
+                $customIdGenerator = $customIdGenerator[0]->newInstance();
+                /** @var ORM\CustomIdGenerator $customIdGenerator */
+                $generator = $this->getIdGenerator($customIdGenerator->class);
 
-            // 生成ID并分配给实体
-            $generatedId = $generator->generateId($objectManager, $entity);
-            $this->entityManager->getUnitOfWork()->assignPostInsertId($entity, $generatedId);
+                // 生成ID并分配给实体
+                $generatedId = $generator->generateId($objectManager, $entity);
+                $this->entityManager->getUnitOfWork()->assignPostInsertId($entity, $generatedId);
+            }
+        } catch (\ReflectionException $e) {
+            // 如果实体没有 id 属性，跳过ID生成处理
+            // 这是正常情况，某些实体可能不需要 id 属性
         }
     }
 
