@@ -15,6 +15,7 @@
     "symfony/framework-bundle": "^6.4",
     "symfony/http-kernel": "^6.4",
     "symfony/yaml": "^6.4 || ^7.1",
+    "tourze/bundle-dependency": "0.0.*",
     "yiisoft/json": "^1.0",
     "yiisoft/strings": "^2.1"
   },
