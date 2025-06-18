@@ -110,8 +110,9 @@ class SqlFormatterGetObjectInsertSqlTest extends TestCase
         $this->assertEquals('active', $params['status']); // 枚举值
         $this->assertEquals(456, $params['category_id']); // 关联实体ID
         
-        // 验证 DateTimeImmutable 对象被直接赋值（没有通过 primaryKeyService 处理）
-        $this->assertInstanceOf(\DateTimeImmutable::class, $params['created_at']);
+        // 验证 DateTimeImmutable 对象被转换为字符串格式
+        $this->assertIsString($params['created_at']);
+        $this->assertMatchesRegularExpression('/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/', $params['created_at']);
     }
 
     public function testGetObjectInsertSqlWithNullValues(): void

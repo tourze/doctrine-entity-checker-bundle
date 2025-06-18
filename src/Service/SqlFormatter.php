@@ -89,6 +89,11 @@ class SqlFormatter
                 $val = Json::encode($val);
             }
 
+            // 处理日期时间对象
+            if ($val instanceof \DateTimeInterface) {
+                $val = $val->format('Y-m-d H:i:s');
+            }
+
             $params[$name] = $val;
         }
         $tableName = $reflection->getAttributes(ORM\Table::class)[0]->newInstance();
