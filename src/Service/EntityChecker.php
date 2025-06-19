@@ -15,6 +15,9 @@ use Tourze\DoctrineEntityCheckerBundle\Checker\EntityCheckerInterface;
 #[Autoconfigure(lazy: true)]
 class EntityChecker
 {
+    /**
+     * @param iterable<EntityCheckerInterface> $checkers
+     */
     public function __construct(
         #[TaggedIterator(EntityCheckerInterface::SERVICE_TAG)] private readonly iterable $checkers,
         #[Autowire(service: EntityManagerInterface::class, lazy: true)] private readonly EntityManagerInterface $entityManager,
@@ -28,7 +31,7 @@ class EntityChecker
     public function prePersistEntity(ObjectManager $objectManager, object $entity): void
     {
         foreach ($this->checkers as $checker) {
-            /* @var EntityCheckerInterface $checker */
+            assert($checker instanceof EntityCheckerInterface);
             $checker->prePersistEntity($objectManager, $entity);
         }
         assert($objectManager instanceof EntityManagerInterface);
@@ -39,14 +42,18 @@ class EntityChecker
         try {
             $property = $reflection->getProperty('id');
             $customIdGenerator = $property->getAttributes(ORM\CustomIdGenerator::class);
-            if (!empty($customIdGenerator)) {
+            if (count($customIdGenerator) > 0) {
                 $customIdGenerator = $customIdGenerator[0]->newInstance();
                 /** @var ORM\CustomIdGenerator $customIdGenerator */
-                $generator = $this->getIdGenerator($customIdGenerator->class);
+                $generatorClass = $customIdGenerator->class;
+                if (is_string($generatorClass)) {
+                    $generator = $this->getIdGenerator($generatorClass);
 
-                // 生成ID并分配给实体
-                $generatedId = $generator->generateId($objectManager, $entity);
-                $this->entityManager->getUnitOfWork()->assignPostInsertId($entity, $generatedId);
+                    // 生成ID并分配给实体
+                    $generatedId = $generator->generateId($objectManager, $entity);
+                    $this->entityManager->getUnitOfWork()->assignPostInsertId($entity, $generatedId);
+                }
+
             }
         } catch (\ReflectionException $e) {
             // 如果实体没有 id 属性，跳过ID生成处理

@@ -24,6 +24,9 @@ class SqlFormatter
     ) {
     }
 
+    /**
+     * @return array{string, array<string, mixed>}
+     */
     public function getObjectInsertSql(ObjectManager $objectManager, object $object): array
     {
         $this->entityChecker->prePersistEntity($objectManager, $object);
@@ -32,24 +35,24 @@ class SqlFormatter
         $params = [];
         $reflection = $objectManager->getClassMetadata($object::class)->getReflectionClass();
         foreach ($reflection->getProperties() as $property) {
-            if ($property->getAttributes(ORM\OneToMany::class) || $property->getAttributes(ORM\ManyToMany::class)) {
+            if (count($property->getAttributes(ORM\OneToMany::class)) > 0 || count($property->getAttributes(ORM\ManyToMany::class)) > 0) {
                 continue;
             }
             $column = $property->getAttributes(ORM\Column::class);
-            if (!empty($column)) {
+            if (count($column) > 0) {
                 $column = $column[0]->newInstance();
             } else {
                 $column = null;
             }
             /** @var ORM\Column|null $column */
             $name = $column?->name;
-            if (!$name) {
+            if (null === $name) {
                 $name = $this->inflector->toSnakeCase($property->getName());
-                if ($property->getAttributes(ORM\ManyToOne::class)) {
+                if (count($property->getAttributes(ORM\ManyToOne::class)) > 0) {
                     $name = "{$name}_id";
                 }
-                if ($property->getAttributes(ORM\OneToOne::class)) {
-                    if (empty($property->getAttributes(ORM\OneToOne::class)[0]->newInstance()->inversedBy)) {
+                if (count($property->getAttributes(ORM\OneToOne::class)) > 0) {
+                    if (null === $property->getAttributes(ORM\OneToOne::class)[0]->newInstance()->inversedBy) {
                         continue;
                     }
                     $name = "{$name}_id";
@@ -59,7 +62,7 @@ class SqlFormatter
             $val = $property->getValue($object);
 
             // 如果是主键并且没值的话，就跳过
-            if (!empty($property->getAttributes(ORM\Id::class)) && $val <= 0) {
+            if (count($property->getAttributes(ORM\Id::class)) > 0 && $val <= 0) {
                 continue;
             }
 
@@ -67,7 +70,7 @@ class SqlFormatter
             if (is_object($val)) {
                 try {
                     $pkValues = $this->primaryKeyService->getPrimaryKeyValues($val);
-                    if (!empty($pkValues)) {
+                    if (count($pkValues) > 0) {
                         // 一般来讲，doctrine entity 是必须有主键的
                         $val = array_shift($pkValues);
                     }
@@ -96,9 +99,10 @@ class SqlFormatter
 
             $params[$name] = $val;
         }
-        $tableName = $reflection->getAttributes(ORM\Table::class)[0]->newInstance();
-        /** @var ORM\Table $tableName */
-        $tableName = $tableName->name;
+        $tableAttribute = $reflection->getAttributes(ORM\Table::class)[0]->newInstance();
+        assert($tableAttribute instanceof ORM\Table);
+        $tableName = $tableAttribute->name;
+        assert(is_string($tableName));
 
         return [
             $tableName,
@@ -108,8 +112,6 @@ class SqlFormatter
 
     /**
      * 格式化参数值
-     *
-     * @param mixed $value
      */
     private function formatOrmValue(OrmParameter $value): string
     {
@@ -120,11 +122,11 @@ class SqlFormatter
         }
 
         if (is_bool($value)) {
-            return $value ? 1 : 0;
+            return $value ? '1' : '0';
         }
 
         if (is_int($value)) {
-            return $value;
+            return (string) $value;
         }
 
         if ($value instanceof \DateTimeInterface) {
@@ -132,13 +134,15 @@ class SqlFormatter
         }
 
         if (is_array($value)) {
-            if (empty($value)) {
+            if (count($value) === 0) {
                 return "''";
             }
 
             $tmp = [];
             foreach ($value as $item) {
-                $tmp[] = "'{$item}'";
+                if (is_scalar($item) || (is_object($item) && method_exists($item, '__toString'))) {
+                    $tmp[] = "'" . (string) $item . "'";
+                }
             }
 
             return implode(', ', $tmp);
@@ -146,11 +150,12 @@ class SqlFormatter
 
         if (is_object($value)) {
             if (method_exists($value, 'getId')) {
-                return $value->getId();
+                $id = $value->getId();
+                return is_scalar($id) ? (string) $id : '0';
             }
         }
 
-        return "'{$value}'";
+        return is_scalar($value) ? "'" . (string) $value . "'" : "''";
     }
 
     /**
@@ -159,6 +164,10 @@ class SqlFormatter
     public function fromOrmQuery(OrmQuery $query): string
     {
         $dql = $query->getDQL();
+        if (null === $dql) {
+            return '';
+        }
+        
         foreach ($query->getParameters() as $k => $parameter) {
             $search = ":{$parameter->getName()}";
             $replace = $this->formatOrmValue($parameter);
