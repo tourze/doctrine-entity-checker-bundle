@@ -21,14 +21,12 @@ class SqlFormatterTest extends TestCase
     private EntityChecker|MockObject $entityChecker;
     private Inflector $inflector;
     private EntityPrimaryKeyService|MockObject $primaryKeyService;
-    private ObjectManager|MockObject $objectManager;
 
     protected function setUp(): void
     {
         $this->entityChecker = $this->createMock(EntityChecker::class);
         $this->inflector = new Inflector();
         $this->primaryKeyService = $this->createMock(EntityPrimaryKeyService::class);
-        $this->objectManager = $this->createMock(ObjectManager::class);
 
         $this->sqlFormatter = new SqlFormatter(
             $this->entityChecker,

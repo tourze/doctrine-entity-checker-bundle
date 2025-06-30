@@ -197,7 +197,7 @@ class EntityCheckerEdgeCasesTest extends TestCase
         $faultyChecker = new class implements EntityCheckerInterface {
             public function prePersistEntity(ObjectManager $objectManager, object $entity): void
             {
-                throw new \RuntimeException('Checker failed');
+                throw new \Tourze\DoctrineEntityCheckerBundle\Exception\EntityCheckerException('Checker failed');
             }
 
             public function preUpdateEntity(ObjectManager $objectManager, object $entity, \Doctrine\ORM\Event\PreUpdateEventArgs $eventArgs): void

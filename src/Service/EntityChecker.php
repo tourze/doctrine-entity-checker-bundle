@@ -19,7 +19,7 @@ class EntityChecker
      * @param iterable<EntityCheckerInterface> $checkers
      */
     public function __construct(
-        #[TaggedIterator(EntityCheckerInterface::SERVICE_TAG)] private readonly iterable $checkers,
+        #[TaggedIterator(tag: EntityCheckerInterface::SERVICE_TAG)] private readonly iterable $checkers,
         #[Autowire(service: EntityManagerInterface::class, lazy: true)] private readonly EntityManagerInterface $entityManager,
         #[Autowire(service: 'service_container')] private readonly ContainerInterface $container,
     ) {
