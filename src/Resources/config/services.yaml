@@ -8,5 +8,6 @@ services:
     resource: '../../Checker/'
   Tourze\DoctrineEntityCheckerBundle\Service\:
     resource: '../../Service/'
+    public: true # 防止测试用例中把这些服务删除了
 
   Yiisoft\Strings\Inflector: ~
