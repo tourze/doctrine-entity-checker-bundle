@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tourze\DoctrineEntityCheckerBundle\Service;
 
 use Doctrine\ORM\EntityManagerInterface;
@@ -9,19 +11,18 @@ use Doctrine\Persistence\ObjectManager;
 use Psr\Container\ContainerInterface;
 use Symfony\Component\DependencyInjection\Attribute\Autoconfigure;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
-use Symfony\Component\DependencyInjection\Attribute\TaggedIterator;
+use Symfony\Component\DependencyInjection\Attribute\AutowireIterator;
 use Tourze\DoctrineEntityCheckerBundle\Checker\EntityCheckerInterface;
 
-#[Autoconfigure(lazy: true)]
-class EntityChecker
+readonly class EntityChecker
 {
     /**
      * @param iterable<EntityCheckerInterface> $checkers
      */
     public function __construct(
-        #[TaggedIterator(tag: EntityCheckerInterface::SERVICE_TAG)] private readonly iterable $checkers,
-        #[Autowire(service: EntityManagerInterface::class, lazy: true)] private readonly EntityManagerInterface $entityManager,
-        #[Autowire(service: 'service_container')] private readonly ContainerInterface $container,
+        #[AutowireIterator(tag: EntityCheckerInterface::SERVICE_TAG)] private iterable $checkers,
+        #[Autowire(service: EntityManagerInterface::class, lazy: true)] private EntityManagerInterface $entityManager,
+        #[Autowire(service: 'service_container')] private ContainerInterface $container,
     ) {
     }
 
@@ -38,7 +39,7 @@ class EntityChecker
 
         // 主键没办法通过上面的方式处理
         $reflection = $this->entityManager->getClassMetadata($entity::class)->getReflectionClass();
-        
+
         try {
             $property = $reflection->getProperty('id');
             $customIdGenerator = $property->getAttributes(ORM\CustomIdGenerator::class);
@@ -53,7 +54,6 @@ class EntityChecker
                     $generatedId = $generator->generateId($objectManager, $entity);
                     $this->entityManager->getUnitOfWork()->assignPostInsertId($entity, $generatedId);
                 }
-
             }
         } catch (\ReflectionException $e) {
             // 如果实体没有 id 属性，跳过ID生成处理

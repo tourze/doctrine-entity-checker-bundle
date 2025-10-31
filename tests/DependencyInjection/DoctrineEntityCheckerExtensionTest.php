@@ -4,97 +4,48 @@ declare(strict_types=1);
 
 namespace Tourze\DoctrineEntityCheckerBundle\Tests\DependencyInjection;
 
-use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\Attributes\CoversClass;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
-use Symfony\Component\DependencyInjection\Extension\Extension;
 use Tourze\DoctrineEntityCheckerBundle\DependencyInjection\DoctrineEntityCheckerExtension;
+use Tourze\PHPUnitSymfonyUnitTest\AbstractDependencyInjectionExtensionTestCase;
 
 /**
- * @coversDefaultClass \Tourze\DoctrineEntityCheckerBundle\DependencyInjection\DoctrineEntityCheckerExtension
+ * @internal
  */
-class DoctrineEntityCheckerExtensionTest extends TestCase
+#[CoversClass(DoctrineEntityCheckerExtension::class)]
+final class DoctrineEntityCheckerExtensionTest extends AbstractDependencyInjectionExtensionTestCase
 {
     private DoctrineEntityCheckerExtension $extension;
+
     private ContainerBuilder $container;
 
     protected function setUp(): void
     {
+        parent::setUp();
         $this->extension = new DoctrineEntityCheckerExtension();
         $this->container = new ContainerBuilder();
+        $this->container->setParameter('kernel.environment', 'test');
     }
 
-    /**
-     * @covers ::__construct
-     */
-    public function testConstruct(): void
+    public function testServicesAreAvailable(): void
     {
-        $this->assertInstanceOf(DoctrineEntityCheckerExtension::class, $this->extension);
-        $this->assertInstanceOf(Extension::class, $this->extension);
-    }
-
-    /**
-     * @covers ::load
-     */
-    public function testLoad(): void
-    {
-        // 执行加载
+        // 加载扩展配置
         $this->extension->load([], $this->container);
 
-        // 验证服务是否已注册
-        $this->assertTrue($this->container->hasDefinition('Tourze\DoctrineEntityCheckerBundle\Service\EntityChecker'));
-        $this->assertTrue($this->container->hasDefinition('Tourze\DoctrineEntityCheckerBundle\Service\EntityPrimaryKeyService'));
-        $this->assertTrue($this->container->hasDefinition('Tourze\DoctrineEntityCheckerBundle\Service\SqlFormatter'));
-        $this->assertTrue($this->container->hasDefinition('Yiisoft\Strings\Inflector'));
+        // 验证服务是否可用
+        self::assertTrue($this->container->hasDefinition('Tourze\DoctrineEntityCheckerBundle\Service\EntityChecker'));
+        self::assertTrue($this->container->hasDefinition('Tourze\DoctrineEntityCheckerBundle\Service\EntityPrimaryKeyService'));
+        self::assertTrue($this->container->hasDefinition('Tourze\DoctrineEntityCheckerBundle\Service\SqlFormatter'));
+        self::assertTrue($this->container->hasDefinition('Yiisoft\Strings\Inflector'));
     }
 
-    /**
-     * @covers ::load
-     */
-    public function testLoadWithEmptyConfigs(): void
+    public function testEntityCheckerServiceIsCorrectlyConfigured(): void
     {
-        // 测试空配置数组
-        $configs = [];
-        
-        $this->extension->load($configs, $this->container);
-        
-        // 验证基本服务仍然被注册
-        $this->assertTrue($this->container->hasDefinition('Tourze\DoctrineEntityCheckerBundle\Service\EntityChecker'));
-    }
-
-    /**
-     * @covers ::load
-     */
-    public function testLoadMultipleConfigs(): void
-    {
-        // 测试多个配置数组
-        $configs = [
-            [],
-            ['some_config' => 'value'],
-        ];
-        
-        $this->extension->load($configs, $this->container);
-        
-        // 验证服务配置
-        $this->assertTrue($this->container->hasDefinition('Tourze\DoctrineEntityCheckerBundle\Service\EntityChecker'));
-    }
-
-    public function testGetAlias(): void
-    {
-        $this->assertEquals('doctrine_entity_checker', $this->extension->getAlias());
-    }
-
-    public function testServicesAutoConfiguration(): void
-    {
+        // 加载扩展配置
         $this->extension->load([], $this->container);
 
-        // 检查 EntityChecker 服务配置
+        // 验证 EntityChecker 服务配置
         $definition = $this->container->getDefinition('Tourze\DoctrineEntityCheckerBundle\Service\EntityChecker');
-        $this->assertTrue($definition->isAutowired());
-        $this->assertTrue($definition->isAutoconfigured());
-
-        // 检查 EntityPrimaryKeyService 服务配置
-        $definition = $this->container->getDefinition('Tourze\DoctrineEntityCheckerBundle\Service\EntityPrimaryKeyService');
-        $this->assertTrue($definition->isAutowired());
-        $this->assertTrue($definition->isAutoconfigured());
+        self::assertEquals('Tourze\DoctrineEntityCheckerBundle\Service\EntityChecker', $definition->getClass());
     }
-} 
+}

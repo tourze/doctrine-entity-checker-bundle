@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tourze\DoctrineEntityCheckerBundle;
 
 use Doctrine\Bundle\DoctrineBundle\DoctrineBundle;

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tourze\DoctrineEntityCheckerBundle\Checker;
 
 use Doctrine\ORM\Event\PreUpdateEventArgs;
@@ -13,7 +15,7 @@ use Symfony\Component\DependencyInjection\Attribute\AutoconfigureTag;
 #[AutoconfigureTag(name: self::SERVICE_TAG)]
 interface EntityCheckerInterface
 {
-    const SERVICE_TAG = 'doctrine.entity_checker.checker';
+    public const SERVICE_TAG = 'doctrine.entity_checker.checker';
 
     /**
      * 更新实体前执行处理
