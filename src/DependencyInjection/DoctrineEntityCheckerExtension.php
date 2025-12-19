@@ -7,7 +7,7 @@ namespace Tourze\DoctrineEntityCheckerBundle\DependencyInjection;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Tourze\SymfonyDependencyServiceLoader\AutoExtension;
 
-class DoctrineEntityCheckerExtension extends AutoExtension
+final class DoctrineEntityCheckerExtension extends AutoExtension
 {
     protected function getConfigDir(): string
     {
